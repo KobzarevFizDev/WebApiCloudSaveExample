@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 
 [Route("api/[controller]")]
 [ApiController]
 public class TokenController : ControllerBase
 {
-    public TokenController()
+    public TokenController(IOptions<DatabaseSettings> databaseSettings)
     {
 
     }

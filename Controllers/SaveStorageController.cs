@@ -5,14 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 public class SaveStorageController : ControllerBase
 {
-    public SaveStorageController()
+    private PlayersSaveRepository _playersSaveRepository;
+    public SaveStorageController(PlayersSaveRepository playersSaveRepository)
     {
-
+        _playersSaveRepository = playersSaveRepository;
     }
 
-    [Authorize]
-    [HttpGet("getSave")]
-    public IActionResult GetSaveOfPlayer()
+    [HttpGet("GetDefaultSave")]
+    public IActionResult GetDefaultSaveOfPlayer()
     {
         var testPlayerSave = new PlayerSave
         {
@@ -21,5 +21,19 @@ public class SaveStorageController : ControllerBase
             Level = 4
         };
         return Ok(testPlayerSave);
+    }
+
+    [HttpGet("GetSaveOfPlayer/{login}")]
+    public ActionResult<PlayerSave> GetSaveOfPlayer(string login)
+    {
+        if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
+        {
+            PlayerSave playerSave = _playersSaveRepository.GetPlayerSaveByLogin(login);
+            return playerSave;
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 }
