@@ -15,7 +15,7 @@ public class PlayersSaveRepository
     // todo: Необходимо хешировать пароли и класть в базу данных
     public void Create(string login, string password)
     {
-        if (ExistPlayerWithThisLogin(login) == false)
+        if (ExistPlayerWithThisLogin(login))
             throw new InvalidOperationException("Player already exist!");
 
         PlayerSave newPlayer = new PlayerSave
@@ -29,6 +29,27 @@ public class PlayersSaveRepository
         _players.InsertOne(newPlayer);
     }
 
+    public void UpdateAmountOfMoney(string login, int newAmountOfMoney)
+    {
+        var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
+        var update = Builders<PlayerSave>.Update.Set(p => p.Money, newAmountOfMoney);
+        _players.UpdateOne(filter, update);
+    }
+
+    public void UpdateNickname(string login, string newNickname)
+    {
+        var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
+        var update = Builders<PlayerSave>.Update.Set(p => p.Nickname, newNickname);
+        _players.UpdateOne(filter, update);
+    }
+
+    public void UpdateLevelOfPlayer(string login, int newLevel)
+    {
+        var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
+        var update = Builders<PlayerSave>.Update.Set(p => p.Level, newLevel);
+        _players.UpdateOne(filter, update);
+    }
+
     public bool ExistPlayerWithThisLogin(string login)
     {
         var findedPlayer = _players
@@ -40,7 +61,7 @@ public class PlayersSaveRepository
 
     public PlayerSave GetPlayerSaveByLogin(string login)
     {
-        if (ExistPlayerWithThisLogin(login))
+        if (ExistPlayerWithThisLogin(login) == false)
             throw new InvalidOperationException($"Player with login = {login} don't exist");
 
         var findedPlayer = _players

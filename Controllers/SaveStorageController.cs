@@ -36,4 +36,32 @@ public class SaveStorageController : ControllerBase
             return NotFound();
         }
     }
+
+    [HttpPut("UpdateNickname/{login}/{newNickname}")]
+    public IActionResult UpdateNickname(string login, string newNickname)
+    {
+        if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
+        {
+            _playersSaveRepository.UpdateNickname(login, newNickname);
+            return Ok();
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPut("UpdateAmountOfMoney/{login}/{amountOfMoney}")]
+    public IActionResult UpdateAmountOfMoney(string login, int amountOfMoney)
+    {
+        if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
+        {
+            _playersSaveRepository.UpdateAmountOfMoney(login, amountOfMoney);
+            return Ok();
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
 }
