@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using System.Diagnostics;
 using System.Linq;
 
 public class PlayersSaveRepository
@@ -13,7 +14,7 @@ public class PlayersSaveRepository
     }
 
     // todo: Необходимо хешировать пароли и класть в базу данных
-    public void Create(string login, string password)
+    public void Create(string login, string hashOfPassword)
     {
         if (ExistPlayerWithThisLogin(login))
             throw new InvalidOperationException("Player already exist!");
@@ -21,9 +22,10 @@ public class PlayersSaveRepository
         PlayerSave newPlayer = new PlayerSave
         {
             Login = login,
-            Nickname = "Default",
+            Nickname = "EnterYourNickname",
             Money = 100,
-            Level = 1
+            Level = 1,
+            PasswordHash = hashOfPassword
         };
 
         _players.InsertOne(newPlayer);
@@ -58,6 +60,7 @@ public class PlayersSaveRepository
 
         return findedPlayer == null ? false : true;
     }
+
 
     public PlayerSave GetPlayerSaveByLogin(string login)
     {

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -12,18 +14,67 @@ public class AccountController : ControllerBase
         _playersSaveRepository = playersSaveService;
     }
 
-    [HttpPost("SignUp")]
-    public IActionResult SignUp([FromForm] AuthenticationRequest loginModel)
+    private string GetHashOfPassword(string password)
     {
-        string generatedAccessToken = _tokenService.GenerateAccessToken(loginModel.Login);
+        using (SHA256 sh256 = SHA256.Create())
+        {
+            byte[] passwordStringAsByteArray = Encoding.UTF8.GetBytes(password);
+            byte[] passwordHash = sh256.ComputeHash(passwordStringAsByteArray);
+            string passwordHashAsString = Convert.ToBase64String(passwordHash);
+            return passwordHashAsString;
+        }
+    }
+
+
+    [HttpPost("SignUp")]
+    public IActionResult SignUp([FromForm] AuthenticationRequest authenticationRequest)
+    {
+        string generatedAccessToken = _tokenService.GenerateAccessToken(authenticationRequest.Login);
         string generatedRefreshToken = _tokenService.GenerateRefreshToken();
 
-        _playersSaveRepository.Create(loginModel.Login, loginModel.Password);
+        string login = authenticationRequest.Login;
+        string password = authenticationRequest.Password;
+        string passwordHash = GetHashOfPassword(password);
 
-        return Ok(new AuthenticationResponse
+        if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
         {
-            AccessToken = generatedAccessToken,
-            RefreshToken = generatedRefreshToken
-        });
+            return StatusCode(409);
+        }
+        else
+        {
+            _playersSaveRepository.Create(login, passwordHash);
+            return Ok(new AuthorizationResponse
+            {
+                AccessToken = generatedAccessToken,
+                RefreshToken = generatedRefreshToken
+            });
+        }
+    }
+
+    [HttpPost("SignIn")]
+    public IActionResult SignIn([FromForm] AuthenticationRequest authenticationRequest)
+    {
+        string login = authenticationRequest.Login;
+        string password = authenticationRequest.Password;
+
+        if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
+        {
+            PlayerSave save = _playersSaveRepository.GetPlayerSaveByLogin(login);
+            string originPasswordHash = save.PasswordHash;
+            string currentPasswordHash = GetHashOfPassword(password);
+
+            if (originPasswordHash.Equals(currentPasswordHash))
+            {
+                return Ok("Success");
+            }
+            else
+            {
+                return StatusCode(401);
+            }
+        }
+        else
+        {
+            return StatusCode(401);
+        }
     }
 }
