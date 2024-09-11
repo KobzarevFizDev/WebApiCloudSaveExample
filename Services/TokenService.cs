@@ -9,9 +9,21 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 public class TokenService
 {
-    public TokenService()
+    private PlayersSaveRepository _saveRepository;
+    public TokenService(PlayersSaveRepository saveRepository)
     {
+        _saveRepository = saveRepository;
+    }
 
+    public bool CheckRefreshToken(string login, string validatingRefreshToken)
+    {
+        if (_saveRepository.ExistPlayerWithThisLogin(login) == false)
+            throw new InvalidOperationException($"Not found player with login = {login}");
+
+        string correctRefreshToken = _saveRepository.GetPlayerSaveByLogin(login)
+                                        .RefreshToken;
+
+        return correctRefreshToken.Equals(validatingRefreshToken);
     }
 
     public string GenerateAccessToken(string login)
@@ -25,9 +37,10 @@ public class TokenService
             issuer: AuthOptions.ISSUER,
             audience: AuthOptions.AUDIENCE,
             claims: claims,
-            expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(40)),
+            expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(20)),
             signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), AuthOptions.Algoritm)
             );
+
         string accessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
         return accessToken;
     }
@@ -56,6 +69,7 @@ public class TokenService
         tokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters, out SecurityToken expiredAccessTokenAsSecurityToken);
         var jwtSecurityToken = expiredAccessTokenAsSecurityToken as JwtSecurityToken;
         string login = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+
         if (login == null)
             throw new SecurityTokenException("Invalid token");
 

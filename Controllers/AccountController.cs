@@ -42,7 +42,7 @@ public class AccountController : ControllerBase
         }
         else
         {
-            _playersSaveRepository.Create(login, passwordHash);
+            _playersSaveRepository.Create(login, passwordHash, generatedRefreshToken);
             return Ok(new AuthorizationResponse
             {
                 AccessToken = generatedAccessToken,
@@ -69,12 +69,12 @@ public class AccountController : ControllerBase
             }
             else
             {
-                return StatusCode(401);
+                return StatusCode(403);
             }
         }
         else
         {
-            return StatusCode(401);
+            return StatusCode(403);
         }
     }
 }

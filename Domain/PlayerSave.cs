@@ -11,4 +11,5 @@ public class PlayerSave
     public int Money { get; set; }
     public int Level { get; set; }
     public string PasswordHash { get; set; } = null!;
+    public string RefreshToken { get; set; } = null!;
 }

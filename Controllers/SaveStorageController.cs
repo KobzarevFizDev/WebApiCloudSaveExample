@@ -23,13 +23,20 @@ public class SaveStorageController : ControllerBase
         return Ok(testPlayerSave);
     }
 
+    [Authorize]
     [HttpGet("GetSaveOfPlayer/{login}")]
-    public ActionResult<PlayerSave> GetSaveOfPlayer(string login)
+    public ActionResult<PlayerGameData> GetSaveOfPlayer(string login)
     {
         if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
         {
             PlayerSave playerSave = _playersSaveRepository.GetPlayerSaveByLogin(login);
-            return playerSave;
+            return new PlayerGameData
+            {
+                Login = playerSave.Login,
+                Nickname = playerSave.Nickname,
+                Money = playerSave.Money,
+                Level = playerSave.Money
+            };
         }
         else
         {
