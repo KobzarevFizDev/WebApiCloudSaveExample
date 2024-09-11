@@ -14,6 +14,11 @@ public class TokenService
 
     }
 
+    public bool CheckRefreshToken(string login, string refreshToken)
+    {
+        return false;
+    }
+
     public string GenerateAccessToken(string login)
     {
         var claims = new List<Claim>
@@ -56,6 +61,7 @@ public class TokenService
         tokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters, out SecurityToken expiredAccessTokenAsSecurityToken);
         var jwtSecurityToken = expiredAccessTokenAsSecurityToken as JwtSecurityToken;
         string login = jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+
         if (login == null)
             throw new SecurityTokenException("Invalid token");
 
