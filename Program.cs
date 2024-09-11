@@ -3,6 +3,12 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string databaseSectionName = "DatabaseSettings";
+IConfigurationSection databaseConfig = builder.Configuration.GetSection(databaseSectionName);
+
+
+builder.Services.Configure<DatabaseSettings>(databaseConfig);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -24,11 +30,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddTransient<PlayersSaveRepository>();
 builder.Services.AddTransient<TokenService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
