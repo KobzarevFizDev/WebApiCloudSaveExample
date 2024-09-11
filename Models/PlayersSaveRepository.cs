@@ -14,7 +14,9 @@ public class PlayersSaveRepository
     }
 
     // todo: Необходимо хешировать пароли и класть в базу данных
-    public void Create(string login, string hashOfPassword)
+    public void Create(string login,
+                       string hashOfPassword,
+                       string refreshToken)
     {
         if (ExistPlayerWithThisLogin(login))
             throw new InvalidOperationException("Player already exist!");
@@ -25,7 +27,8 @@ public class PlayersSaveRepository
             Nickname = "EnterYourNickname",
             Money = 100,
             Level = 1,
-            PasswordHash = hashOfPassword
+            PasswordHash = hashOfPassword,
+            RefreshToken = refreshToken
         };
 
         _players.InsertOne(newPlayer);

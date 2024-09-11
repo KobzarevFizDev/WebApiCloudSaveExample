@@ -16,7 +16,7 @@ public class TokenController : ControllerBase
     }
 
     [HttpPost("UpdateAccessToken")]
-    public IActionResult UpdateAccessToken([FromBody] UpdateAccessTokenRequest updateAccessTokenRequest)
+    public ActionResult<string> UpdateAccessToken([FromForm] UpdateAccessTokenRequest updateAccessTokenRequest)
     {
         string expiredAccessToken = updateAccessTokenRequest.ExpiredAccessToken;
         string refreshToken = updateAccessTokenRequest.RefreshToken;
@@ -28,7 +28,8 @@ public class TokenController : ControllerBase
         {
             if (_tokenService.CheckRefreshToken(login, refreshToken))
             {
-                return Ok();
+                string newAccessToken = _tokenService.GenerateAccessToken(login);
+                return newAccessToken;
             }
             else
             {

@@ -42,7 +42,7 @@ public class AccountController : ControllerBase
         }
         else
         {
-            _playersSaveRepository.Create(login, passwordHash);
+            _playersSaveRepository.Create(login, passwordHash, generatedRefreshToken);
             return Ok(new AuthorizationResponse
             {
                 AccessToken = generatedAccessToken,
