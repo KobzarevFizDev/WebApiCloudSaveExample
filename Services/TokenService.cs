@@ -92,7 +92,7 @@ public class TokenService
 
     private DateTime GetAccessTokenExpirationTime()
     {
-        TimeSpan accessTokenLifeTime = TimeSpan.FromSeconds(20);
+        TimeSpan accessTokenLifeTime = TimeSpan.FromMinutes(40);
         var expirationTime = DateTime.UtcNow.Add(accessTokenLifeTime);
         return expirationTime;
     }

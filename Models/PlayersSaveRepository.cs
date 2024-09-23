@@ -26,6 +26,7 @@ public class PlayersSaveRepository
             Level = 1,
             PasswordHash = hashOfPassword,
             RefreshToken = "NullRefreshToken",
+            PlayerSkin = new PlayerSkin()
         };
 
         _players.InsertOne(newPlayer);
@@ -53,6 +54,13 @@ public class PlayersSaveRepository
     {
         var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
         var update = Builders<PlayerSave>.Update.Set(p => p.Money, newAmountOfMoney);
+        _players.UpdateOne(filter, update);
+    }
+
+    public void UpdatePlayerSkin(string login, PlayerSkin playerSkin)
+    {
+        var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
+        var update = Builders<PlayerSave>.Update.Set(p => p.PlayerSkin, playerSkin);
         _players.UpdateOne(filter, update);
     }
 

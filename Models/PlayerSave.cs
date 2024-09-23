@@ -13,4 +13,5 @@ public class PlayerSave
     public string PasswordHash { get; set; } = null!;
     public string RefreshToken { get; set; } = null!;
     public DateTime RefreshTokenExpirationTime { get; set; }
+    public PlayerSkin PlayerSkin { get; set; } = null!;
 }
