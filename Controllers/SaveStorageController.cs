@@ -35,7 +35,8 @@ public class SaveStorageController : ControllerBase
                 Login = playerSave.Login,
                 Nickname = playerSave.Nickname,
                 Money = playerSave.Money,
-                Level = playerSave.Money
+                Level = playerSave.Money,
+                Skin = playerSave.PlayerSkin
             };
         }
         else
@@ -64,6 +65,20 @@ public class SaveStorageController : ControllerBase
         if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
         {
             _playersSaveRepository.UpdateAmountOfMoney(login, amountOfMoney);
+            return Ok();
+        }
+        else
+        {
+            return NotFound();
+        }
+    }
+
+    [HttpPut("UpdatePlayerSkin/{login}")]
+    public IActionResult UpdatePlayerSkin(string login, [FromBody] PlayerSkin playerSkin)
+    {
+        if (_playersSaveRepository.ExistPlayerWithThisLogin(login))
+        {
+            _playersSaveRepository.UpdatePlayerSkin(login, playerSkin);
             return Ok();
         }
         else

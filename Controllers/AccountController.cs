@@ -27,11 +27,8 @@ public class AccountController : ControllerBase
 
 
     [HttpPost("SignUp")]
-    public IActionResult SignUp([FromForm] AuthenticationRequest authenticationRequest)
+    public ActionResult<AuthorizationResponse> SignUp([FromForm] AuthenticationRequest authenticationRequest)
     {
-        string generatedAccessToken = _tokenService.GenerateAccessToken(authenticationRequest.Login);
-        string generatedRefreshToken = _tokenService.GenerateRefreshToken();
-
         string login = authenticationRequest.Login;
         string password = authenticationRequest.Password;
         string passwordHash = GetHashOfPassword(password);
@@ -42,17 +39,24 @@ public class AccountController : ControllerBase
         }
         else
         {
-            _playersSaveRepository.Create(login, passwordHash, generatedRefreshToken);
-            return Ok(new AuthorizationResponse
+            _playersSaveRepository.Create(login, passwordHash);
+
+            string generatedAccessToken = _tokenService.GenerateAccessToken(authenticationRequest.Login);
+            string generatedRefreshToken = _tokenService.GenerateRefreshToken(login);
+
+            var responce = new AuthorizationResponse
             {
                 AccessToken = generatedAccessToken,
                 RefreshToken = generatedRefreshToken
-            });
+            };
+
+            return responce;
         }
     }
 
+    // todo: обновить refresh токен и вернуть пару (акксесс и рефреш токены)
     [HttpPost("SignIn")]
-    public IActionResult SignIn([FromForm] AuthenticationRequest authenticationRequest)
+    public ActionResult<AuthorizationResponse> SignIn([FromForm] AuthenticationRequest authenticationRequest)
     {
         string login = authenticationRequest.Login;
         string password = authenticationRequest.Password;
@@ -65,16 +69,25 @@ public class AccountController : ControllerBase
 
             if (originPasswordHash.Equals(currentPasswordHash))
             {
-                return Ok("Success");
+                string newAccessToken = _tokenService.GenerateAccessToken(authenticationRequest.Login);
+                string newRefreshToken = _tokenService.GenerateRefreshToken(login);
+
+                var responce = new AuthorizationResponse
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken
+                };
+
+                return responce;
             }
             else
             {
-                return StatusCode(403);
+                return StatusCode(401);
             }
         }
         else
         {
-            return StatusCode(403);
+            return NotFound();
         }
     }
 }

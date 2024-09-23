@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using MongoDB.Driver.Linq;
 public class TokenService
 {
     private PlayersSaveRepository _saveRepository;
@@ -37,7 +38,7 @@ public class TokenService
             issuer: AuthOptions.ISSUER,
             audience: AuthOptions.AUDIENCE,
             claims: claims,
-            expires: DateTime.UtcNow.Add(TimeSpan.FromSeconds(20)),
+            expires: GetAccessTokenExpirationTime(),
             signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), AuthOptions.Algoritm)
             );
 
@@ -45,12 +46,17 @@ public class TokenService
         return accessToken;
     }
 
-    public string GenerateRefreshToken()
+    public string GenerateRefreshToken(string login)
     {
+        if (_saveRepository.ExistPlayerWithThisLogin(login) == false)
+            throw new InvalidOperationException($"Player with login = {login} don't exist");
+
         byte[] refreshTokenAsByteArray = new byte[32];
         var randomGenerator = RandomNumberGenerator.Create();
         randomGenerator.GetBytes(refreshTokenAsByteArray);
         string refreshToken = Convert.ToBase64String(refreshTokenAsByteArray);
+        var refreshTokenExpirationTime = GetRefreshTokenExpirationTime();
+        _saveRepository.SetRefreshToken(login, refreshToken, refreshTokenExpirationTime);
         return refreshToken;
     }
 
@@ -74,5 +80,20 @@ public class TokenService
             throw new SecurityTokenException("Invalid token");
 
         return login;
+    }
+
+
+    private DateTime GetRefreshTokenExpirationTime()
+    {
+        TimeSpan refreshTokenLifeTime = TimeSpan.FromDays(14);
+        var expirationTime = DateTime.UtcNow.Add(refreshTokenLifeTime);
+        return expirationTime;
+    }
+
+    private DateTime GetAccessTokenExpirationTime()
+    {
+        TimeSpan accessTokenLifeTime = TimeSpan.FromMinutes(40);
+        var expirationTime = DateTime.UtcNow.Add(accessTokenLifeTime);
+        return expirationTime;
     }
 }

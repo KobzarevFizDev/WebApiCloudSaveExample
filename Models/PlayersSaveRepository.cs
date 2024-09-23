@@ -13,10 +13,7 @@ public class PlayersSaveRepository
         _players = database.GetCollection<PlayerSave>(databaseSettings.Value.CollectionName);
     }
 
-    // todo: Необходимо хешировать пароли и класть в базу данных
-    public void Create(string login,
-                       string hashOfPassword,
-                       string refreshToken)
+    public void Create(string login, string hashOfPassword)
     {
         if (ExistPlayerWithThisLogin(login))
             throw new InvalidOperationException("Player already exist!");
@@ -28,16 +25,42 @@ public class PlayersSaveRepository
             Money = 100,
             Level = 1,
             PasswordHash = hashOfPassword,
-            RefreshToken = refreshToken
+            RefreshToken = "NullRefreshToken",
+            PlayerSkin = new PlayerSkin()
         };
 
         _players.InsertOne(newPlayer);
+    }
+
+    public void SetRefreshToken(string login,
+                                string refreshToken,
+                                DateTime refreshTokenExpirationTime)
+    {
+        if (ExistPlayerWithThisLogin(login) == false)
+            throw new InvalidOperationException($"Player with login = {login} don't exist");
+
+        var filter = Builders<PlayerSave>
+                        .Filter.Eq(p => p.Login, login);
+        var setRefreshToken = Builders<PlayerSave>
+                        .Update.Set(p => p.RefreshToken, refreshToken);
+        var setRefreshTokenExpirationTime = Builders<PlayerSave>
+                        .Update.Set(p => p.RefreshTokenExpirationTime, refreshTokenExpirationTime);
+
+        _players.UpdateOne(filter, setRefreshToken);
+        _players.UpdateOne(filter, setRefreshTokenExpirationTime);
     }
 
     public void UpdateAmountOfMoney(string login, int newAmountOfMoney)
     {
         var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
         var update = Builders<PlayerSave>.Update.Set(p => p.Money, newAmountOfMoney);
+        _players.UpdateOne(filter, update);
+    }
+
+    public void UpdatePlayerSkin(string login, PlayerSkin playerSkin)
+    {
+        var filter = Builders<PlayerSave>.Filter.Eq(p => p.Login, login);
+        var update = Builders<PlayerSave>.Update.Set(p => p.PlayerSkin, playerSkin);
         _players.UpdateOne(filter, update);
     }
 
